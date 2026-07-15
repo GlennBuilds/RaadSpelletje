@@ -1,0 +1,10 @@
+{
+  "name": "raad-spelletje",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Een lokaal speelbare PWA waarin spelers raden welk dier iemand is.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  }
+}
