@@ -1,3 +1,5 @@
+import { pickUniqueItems } from "./round-picker.mjs";
+
 const animals = [
   ["Aap", "🐒", "makkelijk", ["nieuwsgierig", "speels", "slim"]],
   ["Hond", "🐶", "makkelijk", ["trouw", "enthousiast", "sociaal"]],
@@ -509,6 +511,11 @@ const state = {
   roundWinner: "",
   lastWinner: "",
   scores: {},
+  usedItemIdsByType: {
+    animals: new Set(),
+    people: new Set(),
+    countries: new Set()
+  },
   resultsApplied: false,
   round: 1,
   toast: ""
@@ -544,6 +551,13 @@ const getPool = () => {
 const getPoolForDifficulty = (difficulty) => {
   const allowed = difficultyConfig[difficulty].pool;
   return getActiveItems().filter((item) => allowed.includes(item.difficulty));
+};
+
+const getUsedItemIds = () => {
+  if (!state.usedItemIdsByType[state.contentType]) {
+    state.usedItemIdsByType[state.contentType] = new Set();
+  }
+  return state.usedItemIdsByType[state.contentType];
 };
 
 const getAnimalInspiration = (animal) => [
@@ -688,7 +702,7 @@ const showToast = (message) => {
   }, 2600);
 };
 
-const startRound = () => {
+const startRound = (roundNumber = state.round) => {
   ensureScores();
   if (state.players.length < 2) {
     showToast("Voeg minimaal twee spelers toe.");
@@ -701,21 +715,22 @@ const startRound = () => {
     return;
   }
 
-  const usedAnimalIds = new Set();
-  const pickAnimalForPlayer = (player) => {
-    const difficulty = state.difficultyMode === "perPlayer"
-      ? state.playerDifficulties[player] || state.difficulty
-      : state.difficulty;
-    const playerPool = getPoolForDifficulty(difficulty).filter((animal) => !usedAnimalIds.has(animal.id));
-    const pickedAnimal = randomItems(playerPool, 1)[0];
-    if (pickedAnimal) usedAnimalIds.add(pickedAnimal.id);
-    return pickedAnimal;
-  };
-  const pickedAnimals = state.players.map(pickAnimalForPlayer);
-  if (pickedAnimals.some((animal) => !animal)) {
-    showToast("Niet genoeg unieke dieren voor deze instellingen.");
+  const usedItemIds = getUsedItemIds();
+  const pickedAnimals = pickUniqueItems({
+    players: state.players,
+    usedIds: usedItemIds,
+    getPoolForPlayer: (player) => {
+      const difficulty = state.difficultyMode === "perPlayer"
+        ? state.playerDifficulties[player] || state.difficulty
+        : state.difficulty;
+      return getPoolForDifficulty(difficulty);
+    }
+  });
+  if (!pickedAnimals) {
+    showToast("Niet genoeg nieuwe kaarten over. Kies een grotere pot of start een nieuw spel.");
     return;
   }
+  pickedAnimals.forEach((animal) => usedItemIds.add(animal.id));
   state.assignments = state.players.map((player, index) => ({
     player,
     animal: pickedAnimals[index],
@@ -726,6 +741,7 @@ const startRound = () => {
   state.roundWinner = "";
   state.lastWinner = "";
   state.resultsApplied = false;
+  state.round = roundNumber;
   state.phase = "cards";
   render();
 };
@@ -822,8 +838,7 @@ const revealResults = () => {
 };
 
 const nextRound = () => {
-  state.round += 1;
-  startRound();
+  startRound(state.round + 1);
 };
 
 const resetGame = () => {
@@ -835,6 +850,17 @@ const resetGame = () => {
   state.lastWinner = "";
   state.resultsApplied = false;
   render();
+};
+
+const newGame = () => {
+  state.scores = {};
+  state.usedItemIdsByType = {
+    animals: new Set(),
+    people: new Set(),
+    countries: new Set()
+  };
+  state.round = 1;
+  resetGame();
 };
 
 const chooseCategory = () => {
@@ -878,6 +904,7 @@ const playerColor = (index) => {
 
 const setupView = () => {
   const pool = getPool();
+  const availableCount = pool.filter((item) => !getUsedItemIds().has(item.id)).length;
   const activeConfig = getActiveConfig();
   return `
     <main class="hero-grid">
@@ -936,7 +963,7 @@ const setupView = () => {
 
         <div class="meta-grid">
           <div class="meta-box"><strong>${state.players.length}</strong><span>spelers</span></div>
-          <div class="meta-box"><strong>${state.difficultyMode === "global" ? pool.length : "mix"}</strong><span>kaarten in pot</span></div>
+          <div class="meta-box"><strong>${state.difficultyMode === "global" ? availableCount : "mix"}</strong><span>kaarten over</span></div>
           <div class="meta-box"><strong>${state.round}</strong><span>ronde</span></div>
         </div>
 
@@ -1118,7 +1145,7 @@ const finalView = () => {
         </div>
         <div class="actions">
           <button class="primary" type="button" data-action="next-round">Nog een ronde</button>
-          <button class="secondary" type="button" data-action="reset">Nieuw spel</button>
+          <button class="secondary" type="button" data-action="new-game">Nieuw spel</button>
         </div>
       </section>
     </main>
@@ -1196,6 +1223,7 @@ app.addEventListener("click", (event) => {
   if (action === "next-round") nextRound();
   if (action === "end-game") endGame();
   if (action === "reset") resetGame();
+  if (action === "new-game") newGame();
 });
 
 app.addEventListener("change", (event) => {

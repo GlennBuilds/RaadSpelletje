@@ -5,6 +5,7 @@
   "description": "Een lokaal speelbare PWA met verschillende raadspelcategorieen.",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "node --test"
   }
 }
