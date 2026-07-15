@@ -1,10 +1,9 @@
-const CACHE_NAME = "raadrondje-v15";
+const CACHE_NAME = "raadrondje-v16";
 const BASE_URL = new URL("./", self.location.href);
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./icons/icon.svg",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
