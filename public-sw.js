@@ -1,4 +1,4 @@
-const CACHE_NAME = "raadrondje-v16";
+const CACHE_NAME = "raadrondje-v17";
 const BASE_URL = new URL("./", self.location.href);
 const ASSETS = [
   "./",
@@ -8,6 +8,7 @@ const ASSETS = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./src/main.js",
+  "./src/round-picker.mjs",
   "./src/styles.css"
 ].map((asset) => new URL(asset, BASE_URL).href);
 
