@@ -42,6 +42,6 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Dierenraad draait op http://127.0.0.1:${port}`);
-  console.log("Gebruik op je telefoon: http://<ip-adres-van-deze-mac>:4173");
+  console.log(`RaadRondje draait op http://127.0.0.1:${port}`);
+  console.log(`Gebruik op je telefoon: http://<ip-adres-van-deze-mac>:${port}`);
 });

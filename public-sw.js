@@ -1,14 +1,16 @@
-const CACHE_NAME = "dierenraad-v14";
+const CACHE_NAME = "raadrondje-v15";
+const BASE_URL = new URL("./", self.location.href);
 const ASSETS = [
-  "/",
-  "/index.html",
-  "/manifest.webmanifest",
-  "/icons/icon.svg",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/src/main.js",
-  "/src/styles.css"
-];
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icons/icon.svg",
+  "./icons/icon-180.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./src/main.js",
+  "./src/styles.css"
+].map((asset) => new URL(asset, BASE_URL).href);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
